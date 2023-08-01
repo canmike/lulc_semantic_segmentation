@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from osgeo import gdal
 
-def get_hsi(index: int):
-  file_path_hsi = '/content/data/hsi/'+str(index)+'.tiff'
+def get_hsi(index: int):  
+  file_path_hsi = '/content/data/C2Seg_AB/train/hsi/'+str(index)+'.tiff'
 
   image_hsi = gdal.Open(file_path_hsi)
   array_hsi = image_hsi.ReadAsArray()
