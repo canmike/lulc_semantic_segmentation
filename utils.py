@@ -3,6 +3,15 @@ import matplotlib.pyplot as plt
 from osgeo import gdal
 import torch
 
+def get_mask(index: int, file_path='/content/data/C2Seg_AB/train'):  
+  file_path_mask = file_path+'/label/'+str(index)+'.tiff'
+
+  image_mask  = gdal.Open(file_path_mask)
+  array_mask = image_mask.ReadAsArray()
+
+  array_mask = np.asarray(array_mask)
+  return array_mask
+
 def get_hsi(index: int, file_path='/content/data/C2Seg_AB/train'):  
   file_path_hsi = file_path+'/hsi/'+str(index)+'.tiff'
 
@@ -110,5 +119,10 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train'):
     all_channels.append(hsi)
 
   all_channels = np.asarray(all_channels)
+  all_channels = torch.from_numpy(all_channels)
+  all_channels = torch.unsqueeze(all_channels, 0)
+  all_channels = all_channels.float()
   
-  return all_channels
+  mask = get_mask(index, file_path)
+  
+  return (all_channels, mask)
