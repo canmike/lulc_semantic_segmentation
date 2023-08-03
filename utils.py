@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from osgeo import gdal
+import torch
 
-def get_hsi(index: int):  
-  file_path_hsi = '/content/data/C2Seg_AB/train/hsi/'+str(index)+'.tiff'
+def get_hsi(index: int, file_path='/content/data/C2Seg_AB/train'):  
+  file_path_hsi = file_path+'/hsi/'+str(index)+'.tiff'
 
   image_hsi = gdal.Open(file_path_hsi)
   array_hsi = image_hsi.ReadAsArray()
@@ -81,3 +82,33 @@ def reduce_band(index, n=20, show_reduced=False):
     plt.show()
 
   return reduced_hsi
+
+def get_img(index, file_path='/content/data/C2Seg_AB/train'):
+  
+  file_path_msi = file_path + '/msi/'+str(index)+'.tiff'
+  file_path_sar = file_path + '/sar/'+str(index)+'.tiff'
+
+  image_msi = gdal.Open(file_path_msi)
+  array_msi = image_msi.ReadAsArray()
+
+  image_sar = gdal.Open(file_path_sar)
+  array_sar = image_sar.ReadAsArray()
+
+  array_hsi = reduce_band(index, file_path)
+  array_hsi = torch.tensor(array_hsi)
+  array_hsi = torch.permute(array_hsi, (2, 0, 1))
+  array_hsi = array_hsi.numpy()
+
+  all_channels = []
+  for sar in array_sar:
+    all_channels.append(sar)
+
+  for msi in array_msi:
+    all_channels.append(msi)
+
+  for hsi in array_hsi:
+    all_channels.append(hsi)
+
+  all_channels = np.asarray(all_channels)
+  
+  return all_channels
