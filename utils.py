@@ -100,11 +100,11 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train'):
   array_hsi = array_hsi.numpy()
 
   all_channels = []
-  for sar in array_sar:
-    all_channels.append(sar)
-
   for msi in array_msi:
     all_channels.append(msi)
+
+  for sar in array_sar:
+    all_channels.append(sar)
 
   for hsi in array_hsi:
     all_channels.append(hsi)
