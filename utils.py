@@ -22,7 +22,7 @@ def get_hsi(index: int, file_path='/content/data/C2Seg_AB/train'):
   return array_hsi
 
 
-def reduce_band(index, n=20, show_reduced=False):
+def reduce_band(index, file_path='/content/data/C2Seg_AB/train', n=20, show_reduced=False):
   """
   Reduces given multi-banded image to n-band image using Principal Component Analysis (PCA). 
 
@@ -52,7 +52,7 @@ def reduce_band(index, n=20, show_reduced=False):
   eigenvectors = eigenvectors[:, sorted_indices]
 
   # Step 6: Choose the number of principal components to retain (e.g., retain top N components)
-  N = 20
+  N = n
   num_components_to_retain = N  # Set the desired number of components
 
   # Step 7: Select the top N eigenvectors to form the transformation matrix
@@ -92,7 +92,7 @@ def reduce_band(index, n=20, show_reduced=False):
 
   return reduced_hsi
 
-def get_img(index, file_path='/content/data/C2Seg_AB/train'):
+def get_img(index, file_path='/content/data/C2Seg_AB/train', reduce_hsi=True, reduce_bands=20):
   
   file_path_msi = file_path + '/msi/'+str(index)+'.tiff'
   file_path_sar = file_path + '/sar/'+str(index)+'.tiff'
@@ -102,11 +102,13 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train'):
 
   image_sar = gdal.Open(file_path_sar)
   array_sar = image_sar.ReadAsArray()
-
-  array_hsi = reduce_band(index, file_path)
-  array_hsi = torch.tensor(array_hsi)
-  array_hsi = torch.permute(array_hsi, (2, 0, 1))
-  array_hsi = array_hsi.numpy()
+  if reduce_hsi:
+    array_hsi = reduce_band(index, file_path, reduce_bands)
+    array_hsi = torch.tensor(array_hsi)
+    array_hsi = torch.permute(array_hsi, (2, 0, 1))
+    array_hsi = array_hsi.numpy()
+  else:
+    array_hsi = get_hsi(index, file_path)
 
   all_channels = []
   for msi in array_msi:
