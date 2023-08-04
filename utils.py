@@ -92,7 +92,7 @@ def reduce_band(index, file_path='/content/data/C2Seg_AB/train', n=20, show_redu
 
   return reduced_hsi
 
-def get_img(index, file_path='/content/data/C2Seg_AB/train', reduce_hsi=True, reduce_bands=20):
+def get_img(index, file_path='/content/data/C2Seg_AB/train', use_hsi=True, reduce_hsi=True, reduce_bands=20):
   
   file_path_msi = file_path + '/msi/'+str(index)+'.tiff'
   file_path_sar = file_path + '/sar/'+str(index)+'.tiff'
@@ -102,13 +102,14 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train', reduce_hsi=True, re
 
   image_sar = gdal.Open(file_path_sar)
   array_sar = image_sar.ReadAsArray()
-  if reduce_hsi:
-    array_hsi = reduce_band(index, file_path, reduce_bands)
-    array_hsi = torch.tensor(array_hsi)
-    array_hsi = torch.permute(array_hsi, (2, 0, 1))
-    array_hsi = array_hsi.numpy()
-  else:
-    array_hsi = get_hsi(index, file_path)
+  if use_hsi:
+    if reduce_hsi:
+      array_hsi = reduce_band(index, file_path, reduce_bands)
+      array_hsi = torch.tensor(array_hsi)
+      array_hsi = torch.permute(array_hsi, (2, 0, 1))
+      array_hsi = array_hsi.numpy()
+    else:
+      array_hsi = get_hsi(index, file_path)
 
   all_channels = []
   for msi in array_msi:
@@ -117,8 +118,9 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train', reduce_hsi=True, re
   for sar in array_sar:
     all_channels.append(sar)
 
-  for hsi in array_hsi:
-    all_channels.append(hsi)
+  if use_hsi:
+    for hsi in array_hsi:
+      all_channels.append(hsi)
 
   all_channels = np.asarray(all_channels)
   all_channels = torch.from_numpy(all_channels)
