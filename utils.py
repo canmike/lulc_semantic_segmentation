@@ -92,16 +92,30 @@ def reduce_band(index, file_path='/content/data/C2Seg_AB/train', n=20, show_redu
 
   return reduced_hsi
 
-def get_img(index, file_path='/content/data/C2Seg_AB/train', use_hsi=True, reduce_hsi=True, reduce_bands=20):
+def get_msi(file_path):
+  image_msi = gdal.Open(file_path)
+  array_msi = image_msi.ReadAsArray()
+  return array_msi
+
+def get_sar(file_path):
+  image_sar = gdal.Open(file_path)
+  array_sar = image_sar.ReadAsArray()
+
+def get_img(index, file_path='/content/data/C2Seg_AB/train', use_msi=True, use_sar=True, use_hsi=True, reduce_hsi=True, reduce_bands=20):
   
   file_path_msi = file_path + '/msi/'+str(index)+'.tiff'
   file_path_sar = file_path + '/sar/'+str(index)+'.tiff'
 
-  image_msi = gdal.Open(file_path_msi)
-  array_msi = image_msi.ReadAsArray()
+  if use_msi:
+    array_msi = get_msi(file_path_msi)
+  else:
+    array_msi = []
 
-  image_sar = gdal.Open(file_path_sar)
-  array_sar = image_sar.ReadAsArray()
+  if use_sar:
+    array_sar = get_sar(file_path_sar)
+  else:
+    array_sar = []
+
   if use_hsi:
     if reduce_hsi:
       array_hsi = reduce_band(index, file_path, reduce_bands)
