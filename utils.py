@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from osgeo import gdal
 import torch
 
-def get_mask(index: int, file_path='/data/C2Seg_AB/train'):  
+def get_mask(index: int, file_path='/content/data/C2Seg_AB/train'):  
   file_path_mask = file_path+'/label/'+str(index)+'.tiff'
 
   image_mask  = gdal.Open(file_path_mask)
@@ -12,7 +12,7 @@ def get_mask(index: int, file_path='/data/C2Seg_AB/train'):
   array_mask = np.asarray(array_mask)
   return array_mask
 
-def get_hsi(index: int, file_path='/data/C2Seg_AB/train'):  
+def get_hsi(index: int, file_path='/content/data/C2Seg_AB/train'):  
   file_path_hsi = file_path+'/hsi/'+str(index)+'.tiff'
 
   image_hsi = gdal.Open(file_path_hsi)
@@ -22,7 +22,7 @@ def get_hsi(index: int, file_path='/data/C2Seg_AB/train'):
   return array_hsi
 
 
-def reduce_band(index, file_path='/data/C2Seg_AB/train', n=20, show_reduced=False):
+def reduce_band(index, file_path='/content/data/C2Seg_AB/train', n=20, show_reduced=False):
   """
   Reduces given multi-banded image to n-band image using Principal Component Analysis (PCA). 
 
@@ -100,6 +100,7 @@ def get_msi(file_path):
 def get_sar(file_path):
   image_sar = gdal.Open(file_path)
   array_sar = image_sar.ReadAsArray()
+  return array_sar
 
 def get_img(index, file_path='/content/data/C2Seg_AB/train', use_msi=True, use_sar=True, use_hsi=True, reduce_hsi=True, reduce_bands=20):
   
