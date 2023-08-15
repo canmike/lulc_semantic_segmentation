@@ -106,16 +106,11 @@ def get_img(index, file_path='/content/data/C2Seg_AB/train', use_msi=True, use_s
   file_path_msi = file_path + '/msi/'+str(index)+'.tiff'
   file_path_sar = file_path + '/sar/'+str(index)+'.tiff'
 
-  if use_msi:
-    array_msi = get_msi(file_path_msi)
-  else:
-    array_msi = []
+  array_msi = get_msi(file_path_msi) if use_msi else []
 
-  if use_sar:
-    array_sar = get_sar(file_path_sar)
-  else:
-    array_sar = []
+  array_sar = get_sar(file_path_sar) if use_sar else []
 
+  array_hsi = []
   if use_hsi:
     if reduce_hsi:
       array_hsi = reduce_band(index, file_path, reduce_bands)
