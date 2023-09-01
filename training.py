@@ -39,7 +39,6 @@ def calculate_iou(pred, target, num_classes):
 
 
 def validate(model, val_dataloader, loss_fn):
-  model.eval()
   device = next(model.parameters()).device
 
   val_loss = 0.0
