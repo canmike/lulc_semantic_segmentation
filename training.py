@@ -14,27 +14,29 @@ def calculate_accuracy(pred, target):
   accuracy = correct_pixels / total_pixels * 100
   return accuracy
 
+from torchmetrics import F1Score
 def calculate_f1(pred, target, num_classes):
-  f1_list = []
-  for class_id in range(num_classes):
-    pred_mask = (pred == class_id)
-    target_mask = (target == class_id)
-    true_positive = (pred_mask & target_mask).sum().item()
-    false_positive = (pred_mask & ~target_mask).sum().item()
-    false_negative = (~pred_mask & target_mask).sum().item()
-    precision = true_positive / (true_positive + false_positive + 1e-8)
-    recall = true_positive / (true_positive + false_negative + 1e-8)
-    f1 = 2 * (precision * recall) / (precision + recall + 1e-8)  # Add a small epsilon to avoid division by zero
-    f1_list.append(f1)
-  return sum(f1_list) / len(f1_list)
+  f1 = F1Score(task="multiclass", num_classes=num_classes).to(device)
+  return f1(pred.to(device), target.unsqueeze(dim=0).to(device))
+  
   
 from torchmetrics import JaccardIndex
-def calculate_iou_2(output, mask, num_classes):
+def calculate_iou(output, mask, num_classes):
   output = output.to(device)
   mask = mask.unsqueeze(dim=0).to(device)
 
   jaccard = JaccardIndex(task="multiclass", num_classes=num_classes, average="weighted").to(device)
   return jaccard(output, mask)
+
+from torchmetrics import Precision
+def calculate_precision(output, mask, num_classes):
+  precision = Precision(task="multiclass", num_classes=num_classes, average="weighted").to(device)
+  precision(output.to(device), mask.unsqueeze(dim=0).to(device))
+
+from torchmetrics import Recall
+def calculate_recall(output, mask, num_classes):
+  recall = Recall(task="multiclass", num_classes=num_classes, average="weighted").to(device)
+  recall(output.to(device), mask.unsqueeze(dim=0).to(device))
 
 def validate(model, val_dataloader, loss_fn):
   device = next(model.parameters()).device
@@ -43,6 +45,8 @@ def validate(model, val_dataloader, loss_fn):
   val_accuracy = 0.0
   val_iou = 0.0
   val_f1 = 0.0
+  val_precision = 0.0
+  val_recall = 0.0
   val_total = 0
 
   model.eval()
@@ -58,10 +62,14 @@ def validate(model, val_dataloader, loss_fn):
       accuracy = calculate_accuracy(outputs, targets)
       iou = calculate_iou(torch.argmax(outputs, dim=1), targets, num_classes=14)
       f1 = calculate_f1(torch.argmax(outputs, dim=1), targets, num_classes=14)
+      precision = calculate_precision(outputs, targets, 14)
+      recall = calculate_recall(outputs, targets, 14)
 
       val_accuracy += accuracy
       val_iou += iou
       val_f1 += f1
+      val_precision += precision
+      val_recall += recall
 
       val_total += targets.size(0)
 
@@ -69,9 +77,10 @@ def validate(model, val_dataloader, loss_fn):
   mean_val_accuracy = val_accuracy / len(val_dataloader)
   mean_val_iou = val_iou / len(val_dataloader)
   mean_val_f1 = val_f1 / len(val_dataloader)
+  mean_val_precision = val_precision / len(val_dataloader)
+  mean_val_recall = val_recall / len(val_dataloader)
 
-  return mean_val_loss, mean_val_accuracy, mean_val_iou, mean_val_f1
-
+  return mean_val_loss, mean_val_accuracy, mean_val_iou, mean_val_f1, mean_val_precision, mean_val_recall
 
 
 def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epochs):
@@ -139,4 +148,3 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
     end_time = time.time()
     epoch_time = end_time - start_time
     print(f"----- Epoch Time: {epoch_time:.2f}s -----")
-
