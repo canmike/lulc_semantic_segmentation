@@ -5,6 +5,8 @@ import time
 from tqdm import tqdm
 import numpy as np
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def calculate_accuracy(pred, target):
   _, predicted = torch.max(pred, 1)
   correct_pixels = (predicted == target).sum().item()
@@ -25,18 +27,14 @@ def calculate_f1(pred, target, num_classes):
     f1 = 2 * (precision * recall) / (precision + recall + 1e-8)  # Add a small epsilon to avoid division by zero
     f1_list.append(f1)
   return sum(f1_list) / len(f1_list)
+  
+from torchmetrics import JaccardIndex
+def calculate_iou_2(output, mask, num_classes):
+  output = output.to(device)
+  mask = mask.unsqueeze(dim=0).to(device)
 
-def calculate_iou(pred, target, num_classes):
-  iou_list = []
-  for class_id in range(num_classes):
-    pred_mask = (pred == class_id)
-    target_mask = (target == class_id)
-    intersection = (pred_mask & target_mask).sum().item()
-    union = (pred_mask | target_mask).sum().item()
-    iou = intersection / (union + 1e-8)  # Add a small epsilon to avoid division by zero
-    iou_list.append(iou)
-  return sum(iou_list) / len(iou_list)
-
+  jaccard = JaccardIndex(task="multiclass", num_classes=num_classes, average="weighted").to(device)
+  return jaccard(output, mask)
 
 def validate(model, val_dataloader, loss_fn):
   device = next(model.parameters()).device
