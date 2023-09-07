@@ -88,20 +88,6 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
   for epoch in range(num_epochs):
     start_time = time.time()
     model.train()
-    running_loss = 0.0
-    running_acc = 0.0
-    running_iou = 0.0
-    running_f1 = 0.0
-    running_precision = 0.0
-    running_recall = 0.0
-
-    loss_epoch = []
-    acc_epoch = []
-    iou_epoch = []
-    f1_epoch = []
-    precsion_epoch = []
-    recall_epoch = []
-
     for batch_idx, (inputs, targets) in enumerate(train_data_loader):
       inputs, targets = inputs.to(device), targets.to(device)
       # Zero the parameter gradients
@@ -109,11 +95,6 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
 
       # Forward pass
       outputs = model(inputs)
-    
-      accuracy = calculate_accuracy(outputs, targets)
-      iou = calculate_iou(outputs, targets, 14)
-      precision = calculate_precision(outputs, targets, 14)
-      recall = calculate_recall(outputs, targets, 14)
 
       # Calculate the loss
       loss = loss_fn(outputs, targets.long())
@@ -122,35 +103,9 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
       loss.backward()
       optimizer.step()
 
-      running_loss += loss.item()
-      running_acc += accuracy
-      running_iou += iou
-      running_precision += precision
-      running_recall += recall
-
-      if batch_idx % 10 == 9:
-        mean_loss = running_loss / 10
-        mean_acc = running_acc / 10
-        mean_iou = running_iou / 10
-        mean_precision = running_precision / 10
-        mean_recall = running_recall / 10
-        mean_f1 = 2*(mean_precision * mean_recall) / (mean_precision + mean_recall)
-        
-        running_loss = 0.0
-        running_acc = 0.0
-        running_iou = 0.0
-        running_precision = 0.0
-        running_recall = 0.0
-
-        loss_epoch.append(mean_loss)
-        acc_epoch.append(mean_acc)
-        iou_epoch.append(mean_iou)
-        f1_epoch.append(mean_f1)
-        precsion_epoch.append(mean_precision)
-        recall_epoch.append(mean_recall)
-
-    print(f"Epoch {epoch + 1} | Train Loss: {(sum(loss_epoch) / len(loss_epoch)):.4f} | Train Accuracy: {(sum(acc_epoch) / len(acc_epoch)):.4f}% | Train mIOU: {(sum(iou_epoch) / len(iou_epoch)):.4f} | Train mF1: {(sum(f1_epoch) / len(f1_epoch)):.4f} | Train Precision: {(sum(precsion_epoch) / len(precsion_epoch)):.4f} | Train Recall: {(sum(recall_epoch) / len(recall_epoch) ):.4f}")
-
+    train_loss, train_accuracy, train_iou, train_f1, train_precision, train_recall = validate(model, train_data_loader, loss_fn)
+    print(f"Epoch {epoch + 1} | Train Loss:   {train_loss:.4f} | Train Accuracy:   {train_accuracy:.4f}% | Train mIOU:   {train_iou:.4f} | Train mF1:   {train_f1:.4f} | Train Precision:   {train_precision:.4f} | Train Recall:   {train_recall:.4f}")
+    
     if val_data_loader != None:
       val_loss, val_accuracy, val_iou, val_f1, val_precision, val_recall = validate(model, val_data_loader, loss_fn)
       print(f"Epoch {epoch + 1} | Val Loss:   {val_loss:.4f} | Val Accuracy:   {val_accuracy:.4f}% | Val mIOU:   {val_iou:.4f} | Val mF1:   {val_f1:.4f} | Val Precision:   {val_precision:.4f} | Val Recall:   {val_recall:.4f}")
