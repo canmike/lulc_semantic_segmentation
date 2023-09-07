@@ -81,7 +81,7 @@ def validate(model, val_dataloader, loss_fn):
   return mean_val_loss, mean_val_accuracy, mean_val_iou, mean_val_f1, mean_val_precision, mean_val_recall
 
 
-def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epochs):
+def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epochs, validate_train=False):
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   model.to(device)
 
@@ -103,8 +103,9 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
       loss.backward()
       optimizer.step()
 
-    train_loss, train_accuracy, train_iou, train_f1, train_precision, train_recall = validate(model, train_data_loader, loss_fn)
-    print(f"Epoch {epoch + 1} | Train Loss:   {train_loss:.4f} | Train Accuracy:   {train_accuracy:.4f}% | Train mIOU:   {train_iou:.4f} | Train mF1:   {train_f1:.4f} | Train Precision:   {train_precision:.4f} | Train Recall:   {train_recall:.4f}")
+    if validate_train:
+      train_loss, train_accuracy, train_iou, train_f1, train_precision, train_recall = validate(model, train_data_loader, loss_fn)
+      print(f"Epoch {epoch + 1} | Train Loss:   {train_loss:.4f} | Train Accuracy:   {train_accuracy:.4f}% | Train mIOU:   {train_iou:.4f} | Train mF1:   {train_f1:.4f} | Train Precision:   {train_precision:.4f} | Train Recall:   {train_recall:.4f}")
     
     if val_data_loader != None:
       val_loss, val_accuracy, val_iou, val_f1, val_precision, val_recall = validate(model, val_data_loader, loss_fn)
