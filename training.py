@@ -81,9 +81,10 @@ def validate(model, val_dataloader, loss_fn):
   return mean_val_loss, mean_val_accuracy, mean_val_iou, mean_val_f1, mean_val_precision, mean_val_recall
 
 
-def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epochs, validate_train=False):
+def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epochs, scheduler=None, validate_train=False):
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
   model.to(device)
+  iters = len(train_data_loader)
 
   for epoch in range(num_epochs):
     start_time = time.time()
@@ -102,6 +103,10 @@ def train(model, train_data_loader, val_data_loader, loss_fn, optimizer, num_epo
       # Backward pass and optimize
       loss.backward()
       optimizer.step()
+
+      if scheduler != None:
+        scheduler.step(epoch + batch_idx / iters)
+
 
     if validate_train:
       train_loss, train_accuracy, train_iou, train_f1, train_precision, train_recall = validate(model, train_data_loader, loss_fn)
